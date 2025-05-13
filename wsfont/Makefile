@@ -15,13 +15,13 @@
 SIZES =		5x8 6x12 8x16 12x24 16x32 32x64
 
 all:
-.for size in $(SIZES)
-	$(CC) $(CFLAGS) spleen-${size}.c -o spleen-${size}
-	./spleen-${size} > spleen-${size}.fnt
-	./spleen-${size} | uuencode spleen-${size}.fnt > spleen-${size}.fnt.uue
-.endfor
+	for size in $(SIZES) ; do \
+	   $(CC) $(CFLAGS) spleen-$${size}.c -o spleen-$${size} ; \
+	   ./spleen-${size} > spleen-${size}.fnt ; \
+	   ./spleen-${size} | uuencode spleen-$size.fnt > spleen-$size.fnt.uue ; \
+	done
 
 clean:
-.for size in $(SIZES)
-	rm -f spleen-${size} *.fnt *.uue
-.endfor
+	for size in $(SIZES) ; do \
+	   rm -f spleen-$${size} *.fnt *.uue ; \
+	done

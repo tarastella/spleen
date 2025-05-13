@@ -38,7 +38,7 @@ FONTSET =	$(DATADIR)/fontsets/Uni1.512+:$(ASCII)+:$(LINUX)+:$(USEFUL)
 
 OPTIONS =	$(EQUIVALENT) $(FONTSET) 512
 
-SIZES =		5x8 6x12 8x16 12x24 16x32 32x64
+SIZES =		5x8 6x12 8x16 12x24 16x32 32x64 24x48
 
 TARGET =	all
 
@@ -48,87 +48,87 @@ com:
 	$(MAKE) -C dos
 
 %.pcf: %.bdf
-        $(BDFTOPCF) -t -o $< $@
+	$(BDFTOPCF) -t -o $@ $<
 
 pcf: $(addprefix spleen-,$(SIZES:=.pcf))
 
 %.psfu: %.bdf
-        $(BDF2PSF) --fb $< $(OPTIONS) $@
+	$(BDF2PSF) --fb $< $(OPTIONS) $@
 
 # 32x64 fonts require supported linux kernel 6.12 and kbd 2.6.0 or newer
 psf: $(addprefix spleen-,$(SIZES:=.psfu))
 
 %.fon: %.bdf
-        $(FONTFORGE) -lang ff -c 'Open("$<"); Generate("$@")'
+	$(FONTFORGE) -lang ff -c 'Open("$<"); Generate("$@")'
 
 fon: $(addprefix spleen-,$(SIZES:=.fon))
 
 %.otb: %.bdf
-        $(FONTTOSFNT) -b -c -o %@ %<
+	$(FONTTOSFNT) -b -c -o %@ %<
 
 otb: $(addprefix spleen-,$(SIZES:=.otb))
 
 %.sfd: %.bdf
-        $(eval SIZE := $(subst .bdf,,$(subst spleen-,,$<)))
-        $(BDF2SFD) -f "Spleen $(SIZE)" -p "Spleen$(SIZE)" %< > %@
-        $(FONTFORGE) -lang ff -c 'Open("$@"); SelectAll(); RemoveOverlap(); Simplify(-1, 1); Save("%@")'
+	$(eval SIZE := $(subst .bdf,,$(subst spleen-,,$<)))
+	$(BDF2SFD) -f "Spleen $(SIZE)" -p "Spleen$(SIZE)" %< > %@
+	$(FONTFORGE) -lang ff -c 'Open("$@"); SelectAll(); RemoveOverlap(); Simplify(-1, 1); Save("%@")'
 
 sfd: $(addprefix spleen-,$(SIZES:=.sfd))
 
 %.otf: %.sfd
-        $(eval SIZE := $(subst .sfd,,$(subst spleen-,,$<)))
-        $(FONTFORGE) -lang ff -c 'Open("spleen-$(SIZE).sfd"); Generate("spleen-$(SIZE).otf")'
+	$(eval SIZE := $(subst .sfd,,$(subst spleen-,,$<)))
+	$(FONTFORGE) -lang ff -c 'Open("spleen-$(SIZE).sfd"); Generate("spleen-$(SIZE).otf")'
 
 # Filter out 5x8 as it's a different aspect ratio to the other font sizes
 otf: $(addprefix spleen-,$(filter-out 5x8.%,$(SIZES:=.otf)))
 
 %.png: %.bdf
-        awk 'BEGIN { for(chr = 32; chr < 127; chr++) printf "%c", chr }' | \
-        $(PBMTEXT) -font %< -nomargins | \
-        $(PPMCHANGE) black "#aaa" | \
-        $(PPMCHANGE) white black | \
-        $(PNMTOPNG) > %@
-        $(OXIPNG) -o max %@
+	awk 'BEGIN { for(chr = 32; chr < 127; chr++) printf "%c", chr }' | \
+	$(PBMTEXT) -font %< -nomargins | \
+	$(PPMCHANGE) black "#aaa" | \
+	$(PPMCHANGE) white black | \
+	$(PNMTOPNG) > %@
+	$(OXIPNG) -o max %@
 
 screenshots: $(addprefix spleen-,$(SIZES:=.png))
 
 specimen:
-        printf "\n  Spleen         " | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff7f2a" | \
-        $(PPMCHANGE) black "#fff" > spleen.pnm
+	printf "\n  Spleen         " | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff7f2a" | \
+	$(PPMCHANGE) black "#fff" > spleen.pnm
 
-        printf "\n  Aa Ee Gg       \n  Qq Rr Ss" | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff7f2a" > examples.pnm
+	printf "\n  Aa Ee Gg       \n  Qq Rr Ss" | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff7f2a" > examples.pnm
 
-        printf "\n     The future  " | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff7f2a" | \
-        $(PPMCHANGE) black "#fff" > future.pnm
+	printf "\n     The future  " | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff7f2a" | \
+	$(PPMCHANGE) black "#fff" > future.pnm
 
-        printf "  abcdefghijklm  \n  nopqrstuvwxyz" | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff2a7f" > letters.pnm
+	printf "  abcdefghijklm  \n  nopqrstuvwxyz" | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff2a7f" > letters.pnm
 
-        printf "     0123456789  " | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff2a7f" | \
-        $(PPMCHANGE) black "#fff"  > digits.pnm
+	printf "     0123456789  " | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff2a7f" | \
+	$(PPMCHANGE) black "#fff"  > digits.pnm
 
-        $(PNMCAT) -tb spleen.pnm examples.pnm future.pnm letters.pnm digits.pnm > specimen.pnm
-        $(RM) spleen.pnm examples.pnm future.pnm letters.pnm digits.pnm
+	$(PNMCAT) -tb spleen.pnm examples.pnm future.pnm letters.pnm digits.pnm > specimen.pnm
+	$(RM) spleen.pnm examples.pnm future.pnm letters.pnm digits.pnm
 
-        printf "a" | \
-        $(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
-        $(PPMCHANGE) white "#ff7f2a" | \
-        $(PPMCHANGE) black "#fff" | \
-        $(PNMSCALE) 4 | \
-        $(PNMPASTE) - 364 100 specimen.pnm | \
-        $(PNMTOPNG) > specimen.png
+	printf "a" | \
+	$(PBMTEXT) -font spleen-32x64.bdf -nomargins | \
+	$(PPMCHANGE) white "#ff7f2a" | \
+	$(PPMCHANGE) black "#fff" | \
+	$(PNMSCALE) 4 | \
+	$(PNMPASTE) - 364 100 specimen.pnm | \
+	$(PNMTOPNG) > specimen.png
 
-        $(RM) specimen.pnm
-        $(OXIPNG) -o max specimen.png
+	$(RM) specimen.pnm
+	$(OXIPNG) -o max specimen.png
 
 clean:
-        $(RM) *.bak *.dfont *.fon *.gz *.sfd *.otb *.otf *.pcf *.psfu spleen*.png
+	$(RM) *.bak *.dfont *.fon *.gz *.sfd *.otb *.otf *.pcf *.psfu spleen*.png
